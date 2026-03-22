@@ -38,17 +38,33 @@ def shorten_url(url_data: URLData):
     db.add(new_url) # Add the new URL object to the database session
     db.commit() # Commit the transaction to save the new URL mapping in the database
     db.refresh(new_url) # Refresh the new URL object to get the updated data from the database (e.g., auto-generated ID)
-    
+    db.close() # Close the database session after the operation is complete
     return {"short_url": f"http://short.url/{randomstr}"}
 
 
 @app.get("/{short_code}")
 def redirect_url(short_code: str):
     db=SessionLocal() # Create a new database session
-    exists=db.query(URL).filter(URL.short_code == short_code).first() # Query the database to check if the short code exists
-    if not exists:
-        raise HTTPException(status_code=404, detail="Short URL not found") 
-    # Handling the case where the short code is not found in the url_map, returning a 404 error.
-    return RedirectResponse(url=exists.original_url) 
-    '''Redirecting to the original URL associated with the short code. In a real application, this would involve sending an HTTP redirect response to the client using something like FastAPI's RedirectResponse.''' 
-    
+    try:
+        exists=db.query(URL).filter(URL.short_code == short_code).first() # Query the database to check if the short code exists
+        if not exists:
+            raise HTTPException(status_code=404, detail="Short URL not found") 
+        # Handling the case where the short code is not found in the url_map, returning a 404 error.
+        exists.click_count += 1 # Increment the click count for the URL mapping
+        return RedirectResponse(url=exists.original_url)
+    finally:       
+        db.close() # Ensure the database session is closed after the operation is complete, regardless of success or failure. 
+        
+@app.get("/stats/{short_code}")
+def get_stats(short_code: str):
+    db=SessionLocal()
+    try:
+        exists=db.query(URL).filter(URL.short_code==short_code).first()
+        if not exists:
+            raise HTTPException(status_code=404,detail="short code doesn't exist")
+        return {
+            "short_code": exists.short_code,
+            "original_url": exists.original_url,
+            "clicks": exists.click_count}
+    finally:
+        db.close()

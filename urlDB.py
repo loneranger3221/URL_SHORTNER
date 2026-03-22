@@ -13,9 +13,10 @@ from sqlalchemy import Column, Integer, String
 class URL(Base):
     __tablename__ = "urls" #
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)  
     short_code = Column(String, unique=True, index=True)
-    original_url = Column(String)
+    original_url = Column(String,index=True)
+    click_count = Column(Integer, default=0)
     '''This class defines a database model for storing URL mappings. By defining this model, we can easily interact with the database using SQLAlchemy's ORM features.'''
     
 Base.metadata.create_all(bind=engine) #This line creates the necessary database tables based on the defined models. It uses the metadata from the Base class to generate
