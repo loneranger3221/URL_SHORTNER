@@ -3,7 +3,7 @@ from pydantic import BaseModel, HttpUrl
 from fastapi.responses import RedirectResponse
 import random
 import string
-from urlDB import SessionLocal, URL
+from app.urlDB import SessionLocal, URL
 
 
 app = FastAPI()
