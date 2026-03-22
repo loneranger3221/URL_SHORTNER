@@ -51,6 +51,8 @@ def redirect_url(short_code: str):
             raise HTTPException(status_code=404, detail="Short URL not found") 
         # Handling the case where the short code is not found in the url_map, returning a 404 error.
         exists.click_count += 1 # Increment the click count for the URL mapping
+        db.commit() # Commit the transaction to save the updated click count in the database
+        db.refresh(exists) # Refresh the URL object to get the updated click count from the database
         return RedirectResponse(url=exists.original_url)
     finally:       
         db.close() # Ensure the database session is closed after the operation is complete, regardless of success or failure. 
